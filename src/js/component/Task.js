@@ -10,7 +10,7 @@ export const Task = ({ task, tasks, setTasks, taskIndex }) => {
 	return (
 		<li className="list-group-item d-flex justify-content-between task p-4">
 			<span className="font-weight-bold" style={{ fontSize: "1.2em" }}>
-				{taskIndex + 1}. {task}
+				{taskIndex + 1}. {task?.label}
 			</span>
 			<button
 				type="button"
@@ -23,7 +23,7 @@ export const Task = ({ task, tasks, setTasks, taskIndex }) => {
 };
 
 Task.propTypes = {
-	task: PropTypes.string,
+	task: PropTypes.object,
 	tasks: PropTypes.array,
 	setTasks: PropTypes.func,
 	taskIndex: PropTypes.number
