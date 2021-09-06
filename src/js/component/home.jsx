@@ -1,6 +1,8 @@
 import axios from "axios";
+import { get } from "jquery";
 import React, { useState, useEffect } from "react";
 import { Task } from "./Task";
+import { Loading } from "./Loading";
 
 const sampleTask = {
 	label: "",
@@ -11,44 +13,55 @@ const sampleTask = {
 const Home = () => {
 	const [tasks, setTasks] = useState([]);
 	const [newTask, setNewTask] = useState(sampleTask);
+	const [loading, setLoading] = useState(false);
 
 	const baseUrl = "https://assets.breatheco.de/apis/fake/todos/user/asiz15";
 	const getTasks = () => {
 		axios
 			.get(baseUrl)
-			.then(res => setTasks(res.data))
-			.catch(err => console.log(err));
+			.then(res => {
+				setLoading(false);
+				setTasks(res.data.filter(t => t.label !== "sample task"));
+				console.log("get tasks!!");
+			})
+			.catch(err => {
+				setLoading(false);
+				console.log(err);
+			});
 	};
 	const addTask = e => {
 		if (e.key === "Enter" && newTask.label.length > 0) {
 			const arr = [...tasks];
-			arr.push(newTask);
-			setTasks(arr);
+			arr.push({ label: e.target.value, done: false });
 			setNewTask(sampleTask);
+			updateTasks(arr);
 		}
 	};
-	const clearTasks = () => {
+	const updateTasks = arr => {
+		setLoading(true);
 		const deleteTasks = {
 			method: "PUT",
 			url: baseUrl,
 			headers: {
 				"Content-Type": "application/json"
 			},
-			data: []
+			data: arr
 		};
 		axios(deleteTasks)
-			.then(res => setTasks([]))
+			.then(res => {
+				console.log("tasks updated!");
+				getTasks();
+			})
 			.catch(err => console.log(err));
 	};
-	const updateTasks = () => {
-		
-	}
 	useEffect(() => {
+		setLoading(true);
 		getTasks();
 	}, []);
 	return (
 		<div className="text-center mt-5 container">
 			<h2 className="mb-4">React Todos</h2>
+			{loading && <Loading></Loading>}
 			<div className="row mt-4">
 				<div className="col col-12">
 					<ul className="list-group text-left shadow-lg">
@@ -74,7 +87,7 @@ const Home = () => {
 										task={task}
 										tasks={tasks}
 										taskIndex={index}
-										setTasks={setTasks}></Task>
+										updateTasks={updateTasks}></Task>
 								);
 							})
 						) : (
@@ -85,8 +98,20 @@ const Home = () => {
 						<li className="list-group-item d-flex justify-content-between w-100">
 							<small className="text-secondary">
 								{tasks.length} Items left
-								<button onClick={clearTasks}>Delete all</button>
 							</small>
+							<button
+								disabled={tasks.length === 0}
+								className="btn btn-primary"
+								onClick={() =>
+									updateTasks([
+										{
+											label: "sample task",
+											done: false
+										}
+									])
+								}>
+								Delete all
+							</button>
 						</li>
 					</ul>
 				</div>
